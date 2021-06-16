@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@xiaobai-world/api": "0.0.16",
+    "rxjs": "^7.1.0",
     "vue": "^3.0.5"
   },
   "devDependencies": {
