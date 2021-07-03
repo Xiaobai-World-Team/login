@@ -1,5 +1,5 @@
 <template>
- <div class="xiaobai-world-login-wrapper">
+ <div class="xiaobai-world-login-wrapper" :class="{ loading }">
   <template v-if="!user.email">
    <div class="tabs">
     <a
@@ -19,7 +19,7 @@
     <p class="error-message" v-if="errorMessage">{{ errorMessage }}</p>
    </div>
    <form v-if="activeIndex === 0" @submit.prevent="login">
-    <fieldset :disabled="loading">
+    <fieldset :disabled="pending">
      <div class="item">
       <label for="email"> email </label>
       <input name="email" v-model="form.email" type="text" />
@@ -34,7 +34,7 @@
     </fieldset>
    </form>
    <form v-if="activeIndex === 1" @submit.prevent="register">
-    <fieldset :disabled="loading">
+    <fieldset :disabled="pending">
      <div class="item">
       <label for="email"> Email </label>
       <input name="email" v-model="form.email" type="text" />
@@ -57,13 +57,11 @@
     </fieldset>
    </form>
   </template>
-  <template v-if="user.email">
-   <div class="login-success">
-    <img v-if="user.avatar" :src="user.avatar" />
-    <h1>{{ user.email }}</h1>
-    <p class="msg">Login successful</p>
-   </div>
-  </template>
+  <div v-show="user.email" class="login-success">
+   <img v-if="user.avatar" :src="user.avatar" />
+   <h1>{{ user.email }}</h1>
+   <p class="msg">Signed in ✅</p>
+  </div>
  </div>
 </template>
 
@@ -87,10 +85,10 @@ export default defineComponent({
 
   const errorMessage = ref("");
 
-  const loading = ref(false);
+  const pending = ref(false);
 
   function login() {
-   loading.value = true;
+   pending.value = true;
    fetch("/user/login", {
     body: JSON.stringify({
      email: form.value.email,
@@ -103,7 +101,7 @@ export default defineComponent({
    })
     .then((response) => response.json())
     .then((data) => {
-      loading.value = false
+     pending.value = false;
      if (data.email) {
       user.value = data;
       errorMessage.value = "";
@@ -128,11 +126,17 @@ export default defineComponent({
    })
     .then((response) => response.json())
     .then((data) => {
-     console.log(data);
+     if (data?.statusCode === 500) {
+      errorMessage.value = data.message;
+     }
+    })
+    .catch((e) => {
+     console.log("eee", e);
     });
   }
 
   const activeIndex = ref(0);
+  const loading = ref(true);
 
   return {
    login,
@@ -141,8 +145,22 @@ export default defineComponent({
    register,
    user,
    errorMessage,
+   pending,
    loading,
   };
+ },
+ mounted() {
+  fetch("/user/info")
+   .then((res) => res.json())
+   .then((data) => {
+    this.loading = false;
+    if (data.email) {
+     this.user = data;
+    }
+   })
+   .catch((e) => {
+    this.loading = false;
+   });
  },
 });
 </script>
@@ -153,11 +171,17 @@ export default defineComponent({
  margin: 0 auto;
  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
   Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+ &.loading {
+  background: url(./loading.svg) center center no-repeat;
+  > * {
+   opacity: 0;
+  }
+ }
  form {
   fieldset {
-    margin: 0;
-    padding: 0;
-    border: none;
+   margin: 0;
+   padding: 0;
+   border: none;
 
    > .item {
     display: flex;
