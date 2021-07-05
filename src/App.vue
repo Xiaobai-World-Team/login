@@ -21,7 +21,7 @@
    <form v-if="activeIndex === 0" @submit.prevent="login">
     <fieldset :disabled="pending">
      <div class="item">
-      <label for="email"> email </label>
+      <label for="email"> Email </label>
       <input name="email" v-model="form.email" type="text" />
      </div>
      <div class="item">
@@ -60,7 +60,7 @@
   <div v-show="user.email" class="login-success">
    <img v-if="user.avatar" :src="user.avatar" />
    <h1>{{ user.email }}</h1>
-   <p class="msg">Signed in ✅</p>
+   <p class="msg">Signed in ✅! </p>
   </div>
  </div>
 </template>
